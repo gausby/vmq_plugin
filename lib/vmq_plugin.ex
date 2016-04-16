@@ -1,0 +1,2 @@
+defmodule VmqPlugin do
+end
