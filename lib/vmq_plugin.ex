@@ -1,6 +1,8 @@
 defmodule VmqPlugin do
   @moduledoc """
-
+  Defines callbacks for writing plugins for the VerneMQ MQTT message
+  broker. Please refer to the official documentation on plugin
+  development: https://vernemq.com/docs/plugindevelopment/
   """
 
   @type peer :: {:inet.ip_address(), :inet.port_number()}
@@ -32,8 +34,9 @@ defmodule VmqPlugin do
     {:trade_consistency, boolean}
 
   @doc """
-  Grant or reject new client connections. Besides working as a application
-  level firewall it can also alter the configuration of the client.
+  Grant or reject new client connections. Besides working as a
+  application level firewall it can also alter the configuration of the
+  client.
   """
   @callback auth_on_register(peer, subscriber_id, username, password, clean_session :: flag) ::
     :ok | {:ok, [reg_modifier]} |
@@ -41,19 +44,20 @@ defmodule VmqPlugin do
     :next
 
   @doc """
-  During `on_register` detailed information can be gathered about the client
+  During `on_register` detailed information can be gathered about the
+  client
   """
   @callback on_register(peer, subscriber_id, username) :: any
 
   @doc """
-  Called after the client has been successfully authenticated, and after the
-  `auth_on_register/5` and `on_rigister/3`; after the queue has been attached
-  to--and offline messages has been migrated and dublicate sessions has been
-  disconnected.
+  Called after the client has been successfully authenticated, and after
+  the `auth_on_register/5` and `on_rigister/3`; after the queue has been
+  attached to--and offline messages has been migrated and dublicate
+  sessions has been disconnected.
 
-  This hook can hang for a bit if the client uses `clean_session=false` or
-  if the client had a previous session in the VerneMQ cluster (messages has
-  to be moved between nodes).
+  This hook can hang for a bit if the client uses `clean_session=false`
+  or if the client had a previous session in the VerneMQ cluster--in
+  which case messages has to be moved between nodes.
   """
   @callback on_client_wakeup(subscriber_id) :: any
 
@@ -74,13 +78,24 @@ defmodule VmqPlugin do
   @callback on_client_gone(subscriber_id) :: any
 
   # subscribe flow -----------------------------------------------------
+  @doc """
+  Allow the plugin to grand or reject subscribe requests sent by a
+  client, as well as rewrite the subscribe topic and quality of service.
+  """
   @callback auth_on_subscribe(username, subscriber_id, topics) ::
     :ok | {:ok, topics} |
     {:error, reason :: any} |
     :next
 
+  @doc """
+  Called on every subscribe request that has been authorized.
+  """
   @callback on_subscribe(username, subscriber_id, topics) :: any
 
+  @doc """
+  Called on every unsubscribe request and allow the plugin author to
+  rewrite the unsubscribe topic.
+  """
   @callback on_unsubscribe(username, subscriber_id, topics) ::
     :ok | {:ok, topics} |
     :next
@@ -94,19 +109,41 @@ defmodule VmqPlugin do
     {:retain, flag} |
     {:mountpoint, mountpoint}
 
+  @doc """
+  Grand or reject publish requests sent by a client. It is also possible
+  to rewrite the publish topic, payload, quality of service or retain
+  flag.
+
+  If this hook is defined it will become part of a conditional plugin
+  chain; if the plugin cannot validate the publish message it is best to
+  pass the message on to the next plugin implementing `auth_on_publish`
+  by returning `:next`. If none of the plugins accept the message it
+  will get rejected.
+  """
   @callback auth_on_publish(username, subscriber_id, qos, topic, payload, is_retain :: flag) ::
     :ok | {:ok, payload | [msg_modifier]} |
     {:error, reason :: any} |
     :next
 
+  @doc """
+  Called on every authorized publish message.
+  """
   @callback on_publish(username, subscriber_id, qos, topic, payload, is_retain :: flag) :: any
 
+  @doc """
+  Called every time a message going to a currently offline client is
+  queued.
+  """
   @callback on_offline_message(subscriber_id) :: any
 
   @type msg_deliver_modifier ::
     {:topic, topic} |
     {:payload, payload}
 
+  @doc """
+  Called on every outgoing publish message, and allow the plugin to
+  rewrite the `topic` and/or `payload`.
+  """
   @callback on_deliver(username, subscriber_id, topic, payload) ::
     :ok | {:ok, payload | [msg_deliver_modifier]}
     :next
