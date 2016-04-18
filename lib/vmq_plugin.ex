@@ -31,17 +31,46 @@ defmodule VmqPlugin do
     {:upgrade_qos, boolean} |
     {:trade_consistency, boolean}
 
+  @doc """
+  Grant or reject new client connections. Besides working as a application
+  level firewall it can also alter the configuration of the client.
+  """
   @callback auth_on_register(peer, subscriber_id, username, password, clean_session :: flag) ::
     :ok | {:ok, [reg_modifier]} |
     {:error, :invalid_credentials | reason :: binary} |
     :next
 
+  @doc """
+  During `on_register` detailed information can be gathered about the client
+  """
   @callback on_register(peer, subscriber_id, username) :: any
 
+  @doc """
+  Called after the client has been successfully authenticated, and after the
+  `auth_on_register/5` and `on_rigister/3`; after the queue has been attached
+  to--and offline messages has been migrated and dublicate sessions has been
+  disconnected.
+
+  This hook can hang for a bit if the client uses `clean_session=false` or
+  if the client had a previous session in the VerneMQ cluster (messages has
+  to be moved between nodes).
+  """
   @callback on_client_wakeup(subscriber_id) :: any
 
+  @doc """
+  **This hook is only called if the client uses `clean_session=false`**
+
+  Triggered when the connection is closed or the client is disconnected
+  because of a dublicate session.
+  """
   @callback on_client_offline(subscriber_id) :: any
 
+  @doc """
+  **This hook is only called if the client uses `clean_session=true`**
+
+  Triggered when the connection is closed or the client is disconnected
+  because of a dublicate session.
+  """
   @callback on_client_gone(subscriber_id) :: any
 
   # subscribe flow -----------------------------------------------------
