@@ -152,51 +152,39 @@ defmodule VmqPlugin do
     quote location: :keep do
       @behaviour unquote(__MODULE__)
 
-      @doc false
       def auth_on_register({_ipaddr, _port}, _subscriber_id, _username, _password, _cleansession),
         do: :next
 
-      @doc false
       def on_register(_peer, _subscriber_id, _username),
         do: nil
 
-      @doc false
       def on_client_wakeup(_subscriber_id),
         do: nil
 
-      @doc false
       def on_client_offline(_subscriber_id),
         do: nil
 
-      @doc false
       def on_client_gone(_subscriber_id),
         do: nil
 
-      @doc false
       def auth_on_subscribe(_username, _client_id, _topics),
         do: :next
 
-      @doc false
       def on_subscribe(_username, _subscriber_id, _topics),
         do: nil
 
-      @doc false
       def on_unsubscribe(_username, _subscriber_id, _topics),
         do: :next
 
-      @doc false
       def auth_on_publish(_username, _subscriber_id, _qos, _topic, _payload, _is_retain),
         do: :next
 
-      @doc false
       def on_publish(_username, _subscriber_id, _qos, _topic, _payload, _is_retain),
         do: nil
 
-      @doc false
       def on_offline_message(_subscriber_id),
         do: nil
 
-      @doc false
       def on_deliver(_username, _subscriber_id, _topic, _payload),
         do: :next
 
