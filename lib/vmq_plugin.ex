@@ -51,7 +51,7 @@ defmodule VmqPlugin do
 
   @doc """
   Called after the client has been successfully authenticated, and after
-  the `auth_on_register/5` and `on_rigister/3`; after the queue has been
+  the `auth_on_register/5` and `on_register/3`; after the queue has been
   attached to--and offline messages has been migrated and dublicate
   sessions has been disconnected.
 
