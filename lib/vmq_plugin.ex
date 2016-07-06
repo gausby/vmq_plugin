@@ -35,8 +35,8 @@ defmodule VmqPlugin do
 
   @doc """
   Grant or reject new client connections. Besides working as a
-  application level firewall it can also alter the configuration of the
-  client.
+  application level firewall it can also alter the configuration of
+  the client.
   """
   @callback auth_on_register(peer, subscriber_id, username, password, clean_session :: flag) ::
     :ok | {:ok, [reg_modifier]} |
@@ -50,37 +50,39 @@ defmodule VmqPlugin do
   @callback on_register(peer, subscriber_id, username) :: any
 
   @doc """
-  Called after the client has been successfully authenticated, and after
-  the `auth_on_register/5` and `on_register/3`; after the queue has been
-  attached to--and offline messages has been migrated and dublicate
-  sessions has been disconnected.
+  Called after the client has been successfully authenticated, and
+  after the `auth_on_register/5` and `on_register/3`; after the queue
+  has been attached to--and offline messages has been migrated and
+  duplicate sessions has been disconnected.
 
-  This hook can hang for a bit if the client uses `clean_session=false`
-  or if the client had a previous session in the VerneMQ cluster--in
-  which case messages has to be moved between nodes.
+  This hook can hang for a bit if the client uses
+  `clean_session=false` or if the client had a previous session in the
+  VerneMQ cluster--in which case messages has to be moved between
+  nodes.
   """
   @callback on_client_wakeup(subscriber_id) :: any
 
   @doc """
   **This hook is only called if the client uses `clean_session=false`**
 
-  Triggered when the connection is closed or the client is disconnected
-  because of a dublicate session.
+  Triggered when the connection is closed or the client is
+  disconnected because of a dublicate session.
   """
   @callback on_client_offline(subscriber_id) :: any
 
   @doc """
   **This hook is only called if the client uses `clean_session=true`**
 
-  Triggered when the connection is closed or the client is disconnected
-  because of a dublicate session.
+  Triggered when the connection is closed or the client is
+  disconnected because of a dublicate session.
   """
   @callback on_client_gone(subscriber_id) :: any
 
   # subscribe flow -----------------------------------------------------
   @doc """
   Allow the plugin to grand or reject subscribe requests sent by a
-  client, as well as rewrite the subscribe topic and quality of service.
+  client, as well as rewrite the subscribe topic and quality of
+  service.
   """
   @callback auth_on_subscribe(username, subscriber_id, topics) ::
     :ok | {:ok, topics} |
@@ -110,15 +112,15 @@ defmodule VmqPlugin do
     {:mountpoint, mountpoint}
 
   @doc """
-  Grand or reject publish requests sent by a client. It is also possible
-  to rewrite the publish topic, payload, quality of service or retain
-  flag.
+  Grand or reject publish requests sent by a client. It is also
+  possible to rewrite the publish topic, payload, quality of service
+  or retain flag.
 
   If this hook is defined it will become part of a conditional plugin
-  chain; if the plugin cannot validate the publish message it is best to
-  pass the message on to the next plugin implementing `auth_on_publish`
-  by returning `:next`. If none of the plugins accept the message it
-  will get rejected.
+  chain; if the plugin cannot validate the publish message it is best
+  to pass the message on to the next plugin implementing
+  `auth_on_publish` by returning `:next`. If none of the plugins
+  accept the message it will get rejected.
   """
   @callback auth_on_publish(username, subscriber_id, qos, topic, payload, is_retain :: flag) ::
     :ok | {:ok, payload | [msg_modifier]} |
@@ -148,55 +150,19 @@ defmodule VmqPlugin do
     :ok | {:ok, payload | [msg_deliver_modifier]}
     :next
 
+  @optional_callbacks [
+    auth_on_register: 5, on_register: 3,
+    on_client_wakeup: 1, on_client_offline: 1, on_client_gone: 1,
+
+    auth_on_subscribe: 3,
+    on_subscribe: 3, on_unsubscribe: 3,
+
+    auth_on_publish: 6,
+    on_publish: 6, on_offline_message: 1, on_deliver: 4]
+
   defmacro __using__(_) do
-    quote location: :keep do
+    quote do
       @behaviour unquote(__MODULE__)
-
-      def auth_on_register({_ipaddr, _port}, _subscriber_id, _username, _password, _cleansession),
-        do: :next
-
-      def on_register(_peer, _subscriber_id, _username),
-        do: nil
-
-      def on_client_wakeup(_subscriber_id),
-        do: nil
-
-      def on_client_offline(_subscriber_id),
-        do: nil
-
-      def on_client_gone(_subscriber_id),
-        do: nil
-
-      def auth_on_subscribe(_username, _client_id, _topics),
-        do: :next
-
-      def on_subscribe(_username, _subscriber_id, _topics),
-        do: nil
-
-      def on_unsubscribe(_username, _subscriber_id, _topics),
-        do: :next
-
-      def auth_on_publish(_username, _subscriber_id, _qos, _topic, _payload, _is_retain),
-        do: :next
-
-      def on_publish(_username, _subscriber_id, _qos, _topic, _payload, _is_retain),
-        do: nil
-
-      def on_offline_message(_subscriber_id),
-        do: nil
-
-      def on_deliver(_username, _subscriber_id, _topic, _payload),
-        do: :next
-
-      defoverridable [
-        auth_on_register: 5, on_register: 3,
-        on_client_wakeup: 1, on_client_offline: 1, on_client_gone: 1,
-
-        auth_on_subscribe: 3,
-        on_subscribe: 3, on_unsubscribe: 3,
-
-        auth_on_publish: 6,
-        on_publish: 6, on_offline_message: 1, on_deliver: 4]
     end
   end
 end
