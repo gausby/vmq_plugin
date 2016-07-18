@@ -3,6 +3,23 @@ defmodule VmqPlugin do
   Defines callbacks for writing plugins for the VerneMQ MQTT message
   broker. Please refer to the official documentation on plugin
   development: https://vernemq.com/docs/plugindevelopment/
+
+  The following callbacks can be hooked into when developing plugins
+  for VerneMQ:
+
+    * `auth_on_register/5`
+    * `on_register/3`
+    * `on_client_wakeup/1`
+    * `on_client_offline/1`
+    * `on_client_gone/1`
+    * `auth_on_subscribe/3`
+    * `on_subscribe/3`
+    * `on_unsubscribe/3`
+    * `auth_on_publish/6`
+    * `on_publish/6`
+    * `on_offline_message/1`
+    * `on_deliver/4`
+
   """
 
   @type peer :: {:inet.ip_address(), :inet.port_number()}
@@ -159,10 +176,4 @@ defmodule VmqPlugin do
 
     auth_on_publish: 6,
     on_publish: 6, on_offline_message: 1, on_deliver: 4]
-
-  defmacro __using__(_) do
-    quote do
-      @behaviour unquote(__MODULE__)
-    end
-  end
 end

@@ -4,6 +4,15 @@
 
 An unofficial helper behaviour for creating plugins for the [VerneMQ](https://vernemq.com/) MQTT message broker. As of yet it provide specs for the callback hooks which aids editor integrations and the dialyzer software.
 
+## Usage
+
+``` elixir
+defmodule MyPlugin do
+  @behaviour VmqPlugin
+
+  # overwrite the callbacks you need
+end
+```
 
 ## Setting up a VerneMQ Plugin in mix.exs
 You will still need to register the callbacks you implement to the environment, this can be done like so in the project *mix.exs*-file:
